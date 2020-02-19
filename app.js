@@ -1,36 +1,33 @@
 const express = require('express');
 const app = express();
 
-app.get('/api/timestamp/:dateString?', (request, response) => {
-    const dateString = request.params.dateString;
+app.get("/api/timestamp/:date_string", function (req,res,next){
 
-    let date;
+var date_string = req.params.date_string;
 
-    if (!dateString) {
-        date = new Date();
-    } else {
-        if (!isNaN(dateString)) {
-            date = new Date(parseInt(dateString));
-        } else {
-            date = new Date(dateString);
-        }
-    }
+var date = Date.parse(date_string)
+if (isNaN(date)==false)
+{ req.time = new Date(date_string).toUTCString();
+req.unix = new Date(date_string).getTime();
+}
 
-    if (date.toString() === 'Invalid Date') {
-        response.json({ error: date.toString() });
-    } else {
+else if (isNaN(date)==true){
 
-        response.json({ unix: date.getTime(), utc: date.toUTCString() });
-    }
-});
+req.time= "invalid date";
+req.unix= "null";
+}
 
-app.use(express.static('public'));
+else {
+req.time = new Date().toUTCString();
+req.unix = new Date().getTime();
+}
 
-app.get('/', (request, response) => {
-    response.sendFile(`${__dirname}/views/index.html`);
-});
 
-const portNumber = process.env.PORT || 8000;
-app.listen(portNumber, () => {
-    console.log(`listening on port ${portNumber}`);
-});
+next();
+
+}, function (req,res) {
+
+res.json ({unix: req.unix,
+        utc: req.time })
+
+})
